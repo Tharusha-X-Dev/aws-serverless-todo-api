@@ -117,7 +117,7 @@ sam deploy
 ## 🌐 API Endpoint
 
 ```
-https://rvbduferug.execute-api.ap-southeast-1.amazonaws.com/Stage
+https://${TodoApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}
 ```
 
 ---
