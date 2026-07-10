@@ -1,170 +1,245 @@
-# AWS Serverless To-Do CRUD API
+# 🚀 AWS Serverless To-Do CRUD API
 
-A simple To-Do CRUD API built with **AWS Lambda**, **API Gateway**, and **DynamoDB**, deployed using the **AWS SAM CLI**.
+A fully serverless RESTful To-Do API built using **AWS Lambda**, **Amazon API Gateway**, **Amazon DynamoDB**, and **AWS SAM**. This project demonstrates how to build, deploy, and test a CRUD application using Infrastructure as Code (IaC) with AWS.
 
-## Architecture
+---
 
-- **DynamoDB table** — stores to-do items (`id` as partition key, on-demand billing)
-- **4 Lambda functions** (Node.js 20.x, AWS SDK v3) — one per operation (create, read, update, delete)
-- **API Gateway (REST API)** — exposes each Lambda function as an HTTP endpoint
-- Infrastructure is defined as code in `template.yaml` (AWS SAM)
+## ✨ Features
+
+- ✅ Create a new to-do task
+- ✅ Retrieve all tasks
+- ✅ Retrieve a task by ID
+- ✅ Update an existing task
+- ✅ Delete a task
+- ✅ Serverless architecture
+- ✅ Infrastructure managed with AWS SAM
+- ✅ Local testing using AWS SAM CLI
+
+---
+
+## 🏗️ Architecture
+
+```
+                Client (Postman / Browser)
+                          │
+                          ▼
+                 Amazon API Gateway
+                          │
+                          ▼
+                  AWS Lambda Functions
+                          │
+                          ▼
+                 Amazon DynamoDB Table
+```
+
+---
+
+## 🛠️ Tech Stack
+
+- Node.js 24.x
+- AWS Lambda
+- Amazon API Gateway (REST API)
+- Amazon DynamoDB
+- AWS SAM CLI
+- AWS SDK for JavaScript v3
+
+---
+
+## 📁 Project Structure
 
 ```
 todo-crud-api/
-├── template.yaml          # SAM template: DynamoDB table, Lambda functions, API Gateway routes
-├── src/handlers/
-│   ├── common.js          # Shared DynamoDB client + response helpers
-│   ├── create.js          # POST /todos
-│   ├── get.js             # GET /todos and GET /todos/{id}
-│   ├── update.js          # PUT /todos/{id}
-│   ├── delete.js          # DELETE /todos/{id}
-│   └── package.json       # @aws-sdk/client-dynamodb, @aws-sdk/lib-dynamodb
-├── events/                # Sample events for local testing with `sam local invoke`
+│
+├── template.yaml
+├── events/
+├── src/
+│   ├── handlers/
+│   │   ├── common.js
+│   │   ├── create.js
+│   │   ├── get.js
+│   │   ├── update.js
+│   │   ├── delete.js
+│   │   └── package.json
+│
+├── env.example.json
 └── README.md
 ```
 
-## Prerequisites
+---
 
-- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) installed and configured (`aws configure`) with an IAM user/role that can create Lambda, API Gateway, DynamoDB, and IAM resources
-- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html) installed
-- Node.js 20.x and npm (SAM will run `npm install` automatically during `sam build`)
-- Docker (optional, only needed for `sam local invoke` / `sam local start-api`)
+## 📋 Prerequisites
 
-## Deploy
+Before running this project, install:
 
-1. **Build the application**
+- AWS CLI
+- AWS SAM CLI
+- Docker Desktop (for local testing)
+- Node.js 24.x
 
-   ```bash
-   sam build
-   ```
+Configure AWS credentials:
 
-2. **Deploy (guided, first time only)**
+```bash
+aws configure
+```
 
-   ```bash
-   sam deploy --guided
-   ```
+Your IAM user should have permission to create:
 
-   You'll be prompted for:
-   - **Stack Name** — e.g. `todo-crud-api`
-   - **AWS Region** — e.g. `us-east-1`
-   - **Confirm changes before deploy** — `Y`
-   - **Allow SAM CLI IAM role creation** — `Y`
-   - **Save arguments to samconfig.toml** — `Y` (so future deploys are just `sam deploy`)
+- AWS Lambda
+- API Gateway
+- DynamoDB
+- IAM Roles
+- CloudFormation resources
 
-   SAM will show a changeset, then create:
-   - The DynamoDB table
-   - 4 Lambda functions + their IAM execution roles
-   - An API Gateway REST API with a `dev` stage
+---
 
-3. **Get your API URL**
+## 🚀 Deployment
 
-   After deployment finishes, SAM prints the outputs, including:
+Build the project:
 
-   ```
-   Key                 ApiBaseUrl
-   Value               https://abc123xyz.execute-api.us-east-1.amazonaws.com/dev
-   ```
+```bash
+sam build
+```
 
-   You can also retrieve it later with:
+Deploy for the first time:
 
-   ```bash
-   aws cloudformation describe-stacks \
-     --stack-name todo-crud-api \
-     --query "Stacks[0].Outputs" \
-     --output table
-   ```
+```bash
+sam deploy --guided
+```
 
-## API Endpoints
+After the first deployment, future deployments are simply:
 
-Base URL: `https://{api-id}.execute-api.{region}.amazonaws.com/dev`
+```bash
+sam deploy
+```
 
-| Method | Path          | Description                  |
-|--------|---------------|-------------------------------|
-| POST   | `/todos`      | Create a new task             |
-| GET    | `/todos`      | Retrieve all tasks            |
-| GET    | `/todos/{id}` | Retrieve a single task by id  |
-| PUT    | `/todos/{id}` | Update an existing task       |
-| DELETE | `/todos/{id}` | Delete a task                 |
+---
 
-### Task object shape
+## 🌐 API Endpoint
+
+```
+https://rvbduferug.execute-api.ap-southeast-1.amazonaws.com/Stage
+```
+
+---
+
+## 📌 API Endpoints
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/todos` | Create a new task |
+| GET | `/todos` | Get all tasks |
+| GET | `/todos/{id}` | Get a task by ID |
+| PUT | `/todos/{id}` | Update a task |
+| DELETE | `/todos/{id}` | Delete a task |
+
+---
+
+## 📝 Example Request
+
+### Create Task
+
+**POST**
+
+```http
+POST /todos
+```
+
+Request Body
 
 ```json
 {
-  "id": "generated-uuid",
-  "title": "string (required on create)",
-  "description": "string (optional)",
-  "completed": false,
-  "createdAt": "ISO-8601 timestamp",
-  "updatedAt": "ISO-8601 timestamp"
+    "title": "Learn AWS SAM"
 }
 ```
 
-## Testing the endpoints
+Example Response
 
-Replace `$API_URL` with your deployed base URL, e.g.:
-
-```bash
-export API_URL="https://abc123xyz.execute-api.us-east-1.amazonaws.com/dev"
+```json
+{
+    "message": "Task created successfully",
+    "task": {
+        "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "title": "Learn AWS SAM",
+        "completed": false
+    }
+}
 ```
 
-**Create a task**
-```bash
-curl -X POST "$API_URL/todos" \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Buy groceries", "description": "Milk, eggs, bread"}'
-```
+---
 
-**Get all tasks**
-```bash
-curl "$API_URL/todos"
-```
+## 🧪 Local Testing
 
-**Get a single task** (use an `id` returned from create)
-```bash
-curl "$API_URL/todos/<id>"
-```
-
-**Update a task**
-```bash
-curl -X PUT "$API_URL/todos/<id>" \
-  -H "Content-Type: application/json" \
-  -d '{"completed": true}'
-```
-
-**Delete a task**
-```bash
-curl -X DELETE "$API_URL/todos/<id>"
-```
-
-## Local testing (optional, requires Docker)
-
-Start a local API Gateway + Lambda emulator:
+Build the application:
 
 ```bash
-sam local start-api
+sam build
 ```
 
-Then hit `http://127.0.0.1:3000/todos` with curl exactly as above. Note that local testing still requires a live DynamoDB table (or [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html)) since the sample events point at the real `TABLE_NAME` environment variable.
-
-You can also invoke a single function directly against the sample events:
+Start the local API:
 
 ```bash
-sam local invoke CreateTodoFunction --event events/create-event.json
+sam local start-api --env-vars env.json
 ```
 
-## Cleanup
+Local endpoint:
 
-To avoid ongoing AWS charges, delete the stack when you're done:
+```
+http://127.0.0.1:3000/todos
+```
+
+### Local Environment Variables
+
+Create an `env.json` file in the project root:
+
+```json
+{
+    "CreateTaskFunction": {
+        "TABLE_NAME": "YOUR_DYNAMODB_TABLE_NAME"
+    }
+}
+```
+
+Replace `YOUR_DYNAMODB_TABLE_NAME` with the DynamoDB table name created after deployment.
+
+> **Note**
+>
+> The Lambda function runs locally using Docker, but it connects to the DynamoDB table deployed in AWS. Therefore, deploy the stack first and update `env.json` with the correct table name before local testing.
+
+An example configuration is included in:
+
+```
+env.example.json
+```
+
+---
+
+## 🧹 Clean Up
+
+Delete all deployed AWS resources:
 
 ```bash
 sam delete
 ```
 
-This removes the Lambda functions, API Gateway, IAM roles, and the DynamoDB table (and all its data).
+---
 
-## Notes
+## 📚 What I Learned
 
-- The DynamoDB table uses **on-demand (PAY_PER_REQUEST) billing**, so there's no cost when idle.
-- CORS is enabled on all routes (`Access-Control-Allow-Origin: *`) for easy testing from a browser or front-end app.
-- IAM permissions for each Lambda are scoped narrowly via SAM's `DynamoDBCrudPolicy` / `DynamoDBReadPolicy` policy templates, rather than broad wildcard access.
-- Handlers use **AWS SDK for JavaScript v3** (`@aws-sdk/client-dynamodb` + `@aws-sdk/lib-dynamodb`'s `DynamoDBDocumentClient`), which auto-marshals plain JS objects to/from DynamoDB's attribute-value format.
+This project helped me gain hands-on experience with:
+
+- AWS Lambda
+- Amazon API Gateway
+- Amazon DynamoDB
+- AWS SAM CLI
+- AWS CloudFormation
+- IAM Roles & Policies
+- Local Lambda testing using Docker
+- Infrastructure as Code (IaC)
+
+---
+
+## 👨‍💻 Author
+
+**Tharusha**
+
+Software Engineering Undergraduate
