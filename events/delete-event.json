@@ -1,0 +1,6 @@
+{
+  "httpMethod": "DELETE",
+  "pathParameters": {
+    "id": "REPLACE_WITH_REAL_ID"
+  }
+}

@@ -1,0 +1,10 @@
+.aws-sam/
+.env
+__pycache__/
+*.pyc
+samconfig.toml
+.vscode/
+.idea/
+node_modules/
+# Environment variables
+env.json

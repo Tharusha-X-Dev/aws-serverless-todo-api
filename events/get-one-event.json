@@ -1,0 +1,6 @@
+{
+  "httpMethod": "GET",
+  "pathParameters": {
+    "id": "REPLACE_WITH_REAL_ID"
+  }
+}

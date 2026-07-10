@@ -1,0 +1,120 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Simple serverless To-Do CRUD API using API Gateway, Lambda, and DynamoDB.
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+    Runtime: nodejs24.x
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref TodoTable
+
+Parameters:
+  StageName:
+    Type: String
+    Default: dev
+    Description: API Gateway stage name
+
+Resources:
+
+  TodoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-todos"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  TodoApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+      Cors:
+        AllowMethods: "'OPTIONS,GET,POST,PUT,DELETE'"
+        AllowHeaders: "'Content-Type'"
+        AllowOrigin: "'*'"
+
+  CreateTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/handlers/
+      Handler: create.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TodoTable
+      Events:
+        CreateTodo:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TodoApi
+            Path: /todos
+            Method: post
+
+  GetTodosFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/handlers/
+      Handler: get.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TodoTable
+      Events:
+        GetAllTodos:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TodoApi
+            Path: /todos
+            Method: get
+        GetOneTodo:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TodoApi
+            Path: /todos/{id}
+            Method: get
+
+  UpdateTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/handlers/
+      Handler: update.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TodoTable
+      Events:
+        UpdateTodo:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TodoApi
+            Path: /todos/{id}
+            Method: put
+
+  DeleteTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/handlers/
+      Handler: delete.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TodoTable
+      Events:
+        DeleteTodo:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TodoApi
+            Path: /todos/{id}
+            Method: delete
+
+Outputs:
+  ApiBaseUrl:
+    Description: Base URL for the To-Do API
+    Value: !Sub "https://${TodoApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+  TodoTableName:
+    Description: DynamoDB table name
+    Value: !Ref TodoTable

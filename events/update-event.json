@@ -1,0 +1,7 @@
+{
+  "httpMethod": "PUT",
+  "pathParameters": {
+    "id": "REPLACE_WITH_REAL_ID"
+  },
+  "body": "{\"completed\": true}"
+}
