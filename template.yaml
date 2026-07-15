@@ -93,7 +93,7 @@ Resources:
           Properties:
             RestApiId: !Ref TodoApi
             Path: /todos/{id}
-            Method: put
+            Method: patch
 
   DeleteTodoFunction:
     Type: AWS::Serverless::Function

@@ -12,7 +12,7 @@ const CORS_HEADERS = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type",
-  "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE",
+  "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PATCH,DELETE",
 };
 
 function response(statusCode, body) {
