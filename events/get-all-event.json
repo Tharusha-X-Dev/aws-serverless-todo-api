@@ -1,4 +1,6 @@
 {
   "httpMethod": "GET",
-  "pathParameters": null
+  "queryStringParameters": {
+    "deviceId": "REPLACE_WITH_DEVICE_ID"
+  }
 }

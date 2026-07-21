@@ -1,4 +1,4 @@
 {
   "httpMethod": "POST",
-  "body": "{\"title\": \"Buy groceries\", \"description\": \"Milk, eggs, bread\"}"
+  "body": "{\"title\":\"Buy Milk\",\"deviceId\":\"REPLACE_WITH_DEVICE_ID\"}"
 }

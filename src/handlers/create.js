@@ -14,18 +14,19 @@ exports.handler = async (event) => {
     return errorResponse(400, "Request body must be valid JSON");
   }
 
-  const { title, description, completed } = body;
+  const { title, deviceId, description, completed } = body;
 
-  if (!title || typeof title !== "string") {
-    return errorResponse(400, "Field 'title' (string) is required");
+  if (!title || !deviceId || typeof title !== "string" || typeof deviceId !== "string") {
+    return errorResponse(400, "Fields 'title' (string) and 'deviceId' (string) are required");
   }
 
   const now = new Date().toISOString();
   const item = {
     id: randomUUID(),
+    deviceId,
     title,
     description: description || "",
-    completed: Boolean(completed) || false,
+    completed: Boolean(completed) ?? false,
     createdAt: now,
     updatedAt: now,
   };

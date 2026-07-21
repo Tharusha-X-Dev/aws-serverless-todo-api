@@ -2,5 +2,8 @@
   "httpMethod": "GET",
   "pathParameters": {
     "id": "REPLACE_WITH_REAL_ID"
+  },
+  "queryStringParameters": {
+    "deviceId": "REPLACE_WITH_DEVICE_ID"
   }
 }

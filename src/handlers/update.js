@@ -1,23 +1,37 @@
 // @ts-nocheck
 const { UpdateCommand } = require("@aws-sdk/lib-dynamodb");
-const { docClient, TABLE_NAME, response, errorResponse } = require("./common");
+const {
+  docClient,
+  TABLE_NAME,
+  response,
+  errorResponse,
+} = require("./common");
 
 const ALLOWED_FIELDS = ["title", "description", "completed"];
 
 /**
- * Update an existing task. Triggered by PUT /todos/{id}
+ * Update an existing task.
+ * Triggered by PATCH /todos/{id}
  */
 exports.handler = async (event) => {
-  const taskId = event.pathParameters && event.pathParameters.id;
+  const taskId = event.pathParameters?.id;
+
   if (!taskId) {
     return errorResponse(400, "Task id is required in the path");
   }
 
   let body;
+
   try {
     body = JSON.parse(event.body || "{}");
   } catch (err) {
     return errorResponse(400, "Request body must be valid JSON");
+  }
+
+  const { deviceId } = body;
+
+  if (!deviceId) {
+    return errorResponse(400, "deviceId is required");
   }
 
   const fieldsToUpdate = Object.keys(body)
@@ -27,7 +41,9 @@ exports.handler = async (event) => {
   if (Object.keys(fieldsToUpdate).length === 0) {
     return errorResponse(
       400,
-      `No valid fields to update. Allowed fields: ${JSON.stringify(ALLOWED_FIELDS)}`
+      `No valid fields to update. Allowed fields: ${JSON.stringify(
+        ALLOWED_FIELDS
+      )}`
     );
   }
 
@@ -40,7 +56,11 @@ exports.handler = async (event) => {
   for (const [key, value] of Object.entries(fieldsToUpdate)) {
     const namePlaceholder = `#${key}`;
     const valuePlaceholder = `:${key}`;
-    updateExpressionParts.push(`${namePlaceholder} = ${valuePlaceholder}`);
+
+    updateExpressionParts.push(
+      `${namePlaceholder} = ${valuePlaceholder}`
+    );
+
     expressionAttributeNames[namePlaceholder] = key;
     expressionAttributeValues[valuePlaceholder] = value;
   }
@@ -49,19 +69,28 @@ exports.handler = async (event) => {
     const result = await docClient.send(
       new UpdateCommand({
         TableName: TABLE_NAME,
-        Key: { id: taskId },
+        Key: {
+          deviceId,
+          id: taskId,
+        },
         UpdateExpression: "SET " + updateExpressionParts.join(", "),
         ExpressionAttributeNames: expressionAttributeNames,
         ExpressionAttributeValues: expressionAttributeValues,
-        ConditionExpression: "attribute_exists(id)",
+        ConditionExpression:
+          "attribute_exists(deviceId) AND attribute_exists(id)",
         ReturnValues: "ALL_NEW",
       })
     );
+
     return response(200, result.Attributes);
   } catch (err) {
     if (err.name === "ConditionalCheckFailedException") {
-      return errorResponse(404, `Task '${taskId}' not found`);
+      return errorResponse(
+        404,
+        `Task '${taskId}' not found`
+      );
     }
+
     console.error(err);
     return errorResponse(500, "Could not update task");
   }

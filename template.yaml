@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Simple serverless To-Do CRUD API using API Gateway, Lambda, and DynamoDB.
@@ -19,25 +19,28 @@ Parameters:
     Description: API Gateway stage name
 
 Resources:
-
   TodoTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: !Sub "${AWS::StackName}-todos"
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
+        - AttributeName: deviceId
+          AttributeType: S
         - AttributeName: id
           AttributeType: S
       KeySchema:
-        - AttributeName: id
+        - AttributeName: deviceId
           KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
 
   TodoApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref StageName
       Cors:
-        AllowMethods: "'OPTIONS,GET,POST,PUT,DELETE'"
+        AllowMethods: "'OPTIONS,GET,POST,PATCH,DELETE'"
         AllowHeaders: "'Content-Type'"
         AllowOrigin: "'*'"
 
@@ -113,7 +116,7 @@ Resources:
 
 Outputs:
   ApiBaseUrl:
-    Description: Base URL for the To-Do API
+    Description: Serverless To-Do CRUD API using AWS SAM, API Gateway, Lambda and DynamoDB with per-device task isolation.
     Value: !Sub "https://${TodoApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
   TodoTableName:
     Description: DynamoDB table name

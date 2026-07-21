@@ -1,48 +1,72 @@
 // @ts-nocheck
-const { GetCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
-const { docClient, TABLE_NAME, response, errorResponse } = require("./common");
+const {
+  GetCommand,
+  QueryCommand,
+} = require("@aws-sdk/lib-dynamodb");
 
-/**
- * Retrieve tasks.
- * - GET /todos       -> list all tasks
- * - GET /todos/{id}  -> get a single task
- */
+const {
+  docClient,
+  TABLE_NAME,
+  response,
+  errorResponse,
+} = require("./common");
+
 exports.handler = async (event) => {
-  const taskId = event.pathParameters && event.pathParameters.id;
+  const taskId = event.pathParameters?.id;
+  const deviceId = event.queryStringParameters?.deviceId;
 
   try {
+    // GET /todos/{id}?deviceId=xxx
     if (taskId) {
+      if (!deviceId) {
+        return errorResponse(400, "deviceId is required");
+      }
+
       const result = await docClient.send(
         new GetCommand({
           TableName: TABLE_NAME,
-          Key: { id: taskId },
+          Key: {
+            deviceId,
+            id: taskId,
+          },
         })
       );
 
       if (!result.Item) {
-        return errorResponse(404, `Task '${taskId}' not found`);
+        return errorResponse(
+          404,
+          `Task '${taskId}' not found`
+        );
       }
+
       return response(200, result.Item);
     }
 
-    // No id supplied -> return all tasks (simple scan, fine for a small demo table)
-    let items = [];
-    let lastEvaluatedKey;
+    // GET /todos?deviceId=xxx
+    if (!deviceId) {
+      return errorResponse(400, "deviceId is required");
+    }
 
-    do {
-      const result = await docClient.send(
-        new ScanCommand({
-          TableName: TABLE_NAME,
-          ExclusiveStartKey: lastEvaluatedKey,
-        })
-      );
-      items = items.concat(result.Items || []);
-      lastEvaluatedKey = result.LastEvaluatedKey;
-    } while (lastEvaluatedKey);
+    const result = await docClient.send(
+      new QueryCommand({
+        TableName: TABLE_NAME,
+        KeyConditionExpression:
+          "deviceId = :deviceId",
+        ExpressionAttributeValues: {
+          ":deviceId": deviceId,
+        },
+      })
+    );
 
-    return response(200, { items, count: items.length });
+    return response(200, {
+      items: result.Items ?? [],
+      count: result.Count ?? 0,
+    });
   } catch (err) {
     console.error(err);
-    return errorResponse(500, "Could not retrieve task(s)");
+    return errorResponse(
+      500,
+      "Could not retrieve task(s)"
+    );
   }
 };

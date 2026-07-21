@@ -1,7 +1,7 @@
 {
-  "httpMethod": "PUT",
+  "httpMethod": "PATCH",
   "pathParameters": {
     "id": "REPLACE_WITH_REAL_ID"
   },
-  "body": "{\"completed\": true}"
+  "body": "{\"deviceId\":\"REPLACE_WITH_DEVICE_ID\",\"title\":\"Updated Task\"}"
 }
